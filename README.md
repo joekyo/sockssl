@@ -1,4 +1,4 @@
-## SockSSL: secure your SOCKS connection using SSL
+## SockSSL: secure your [SOCKS][wiki] connection using SSL
 
 ## Build from source
 
@@ -10,14 +10,14 @@ cd sockssl
 go mod init sockssl
 ```
 
-on your server
+Build `sockssl` on your server
 
 ```shell
 go build -o sockssl cmd/server.go
 ./sockssl
 ```
 
-on your PC or Mac
+Build `sockssl` on your PC or Mac or Linux
 
 ```shell
 go build -o sockssl cmd/client.go
@@ -27,10 +27,10 @@ go build -o sockssl cmd/client.go
 ## Server side configuration
 
 Before running `sockssl` on server, you need to prepare a valid certificate file and a private key.
-You can use tools like `certbot-auto` or `lego` to fetch a free certificate on your server.
+You can use tools like [certbot] or [lego] to fetch a free certificate on your server.
 
 When `sockssl` starts, it will try loading the certificate file named `fullchain.pem` and the private key named `key.pem`.
-If you have these files with different names, you can use command line flags `-c` and `-k`, e.g.:
+If you have these files with different names, you can use command line flags `-c` and `-k` to specify them, e.g.:
 
 ```shell
 ./sockssl -c /path/your_cert -k /path/your_key
@@ -58,8 +58,12 @@ Suppose that your server domain name is `example.com`, to connect to your server
 
 The client `sockssl` will listening on default interface `127.0.0.1` and port `1080`.
 You can use command line flags `-i` and `-p` to change them respectively.
-For example, to allow others at same LAN to connect your `sockssl` client, you can run:
+For example, to allow others at same LAN to connect your `sockssl` client, you can run
 
 ```shell
-./sockssl -i 0.0.0.0
+./sockssl -i 0.0.0.0 example.com
 ```
+
+[wiki]: https://en.wikipedia.org/wiki/SOCKS
+[certbot]: https://certbot.eff.org/
+[lego]: https://github.com/go-acme/lego/
