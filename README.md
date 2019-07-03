@@ -56,7 +56,7 @@ Suppose that your server domain name is `example.com`, to connect to your server
 ./sockssl example.com:8443
 ```
 
-The client `sockssl` will listening on port interface `127.0.0.1` and default port `1080`.
+The client `sockssl` will listening on default interface `127.0.0.1` and port `1080`.
 You can use command line flags `-i` and `-p` to change them respectively.
 For example, to allow others at same LAN to connect your `sockssl` client, you can run:
 
