@@ -64,6 +64,26 @@ For example, to allow others at same LAN to connect your `sockssl` client, you c
 ./sockssl -i 0.0.0.0 example.com
 ```
 
+## Console Output
+
+This is the output of `sockssl` on client side
+
+```shell
+17:41:46 127.0.0.1:54108 > d.dropbox.com:443
+17:41:46 127.0.0.1:54108 = d.dropbox.com:443
+17:42:47 127.0.0.1:54108 x d.dropbox.com:443 (937B tx, 3945B rx, 1m1s)
+```
+
+- `>` indicates a software is trying to connect to a remote server.
+      (in above case, it's Dropbox trying to connect to `d.dropbox.com:443`)
+
+- `=` indicates the connection has established successfully.
+      (Drobox client <=> Sockssl client <=> Sockssl server <=> Dropbox server)
+
+- `x` indicates the connection is now broken.
+      (It lasted for 1 minute and 1 second. 937 Bytes has been sent, and 3945 Byte has been received)
+
+
 [wiki]: https://en.wikipedia.org/wiki/SOCKS
 [certbot]: https://certbot.eff.org/
 [lego]: https://github.com/go-acme/lego/
