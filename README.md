@@ -1,6 +1,6 @@
 ## SockSSL: secure your [SOCKS][wiki] connection using SSL
 
-## Build from source
+## Build from Source
 
 Download source code
 
@@ -24,7 +24,7 @@ go build -o sockssl cmd/client.go
 ./sockssl example.com
 ```
 
-## Server side configuration
+## Server Side Usage
 
 Before running `sockssl` on server, you need to prepare a valid certificate file and a private key.
 You can use tools like [certbot] or [lego] to fetch a free certificate on your server.
@@ -42,7 +42,7 @@ If you have these files with different names, you can use command line flags `-c
 ./sockssl -p 8443
 ```
 
-## Client side configuration
+## Client Side Usage
 
 Suppose that your server domain name is `example.com`, to connect to your server simply run
 
