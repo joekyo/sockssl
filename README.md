@@ -75,13 +75,16 @@ This is the output of `sockssl` on client side
 ```
 
 - `>` indicates a software is trying to connect to a remote server.
-      (in above case, it's Dropbox trying to connect to `d.dropbox.com:443`)
+
+      In above case, it's Dropbox trying to connect to `d.dropbox.com:443`
 
 - `=` indicates the connection has established successfully.
-      (Drobox client <=> Sockssl client <=> Sockssl server <=> Dropbox server)
+
+      Drobox client <=> Sockssl client <=> Sockssl server <=> Dropbox server
 
 - `x` indicates the connection is now broken.
-      (It lasted for 1 minute and 1 second. 937 Bytes has been sent, and 3945 Byte has been received)
+
+      It lasted for 1 minute and 1 second. 937 Bytes has been sent, and 3945 Byte has been received.
 
 
 [wiki]: https://en.wikipedia.org/wiki/SOCKS
