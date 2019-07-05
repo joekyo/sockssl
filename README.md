@@ -1,4 +1,6 @@
-## SockSSL: secure your [SOCKS][wiki] connection using SSL
+# SockSSL: secure your [SOCKS][wiki] connection using SSL
+
+![sockssl image](sockssl.svg)
 
 ## Build from Source
 
