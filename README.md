@@ -86,7 +86,7 @@ This is the output of `sockssl` on client side
 
 - `x` indicates the connection is now broken.
 
-      It lasted for 1 minute and 1 second. 937 Bytes has been sent, and 3945 Byte has been received.
+      It lasted for 1 minute and 1 second. 937 bytes has been sent, and 3945 bytes has been received.
 
 
 [wiki]: https://en.wikipedia.org/wiki/SOCKS
