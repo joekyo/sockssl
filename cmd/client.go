@@ -2,9 +2,11 @@ package main
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"flag"
 	"log"
 	"net"
+	"os"
 	"strings"
 	"time"
 
@@ -14,6 +16,8 @@ import (
 var (
 	socksAddr  string
 	serverAddr string
+
+	rootCaPem string
 )
 
 const (
@@ -21,11 +25,14 @@ const (
 	defaultSocksPort      = "1080"
 
 	defaultServerPort = "2080"
+
+	defaultRootCaPem = "root-ca.pem"
 )
 
 func init() {
 	socksInterface := flag.String("i", defaultSocksInterface, "listen interface")
 	socksPort := flag.String("p", defaultSocksPort, "listen port")
+	flag.StringVar(&rootCaPem, "ca", defaultRootCaPem, "root CA")
 	flag.Parse()
 	socksAddr = net.JoinHostPort(*socksInterface, *socksPort)
 
@@ -40,10 +47,22 @@ func init() {
 }
 
 func main() {
-	config := &tls.Config{}
 	servername, _, _ := net.SplitHostPort(serverAddr)
-	config.ServerName = servername
-	config.ClientSessionCache = tls.NewLRUClientSessionCache(32)
+
+	pem, err := os.ReadFile(rootCaPem)
+	if err != nil {
+		log.Fatal("Failed to read root CA")
+	}
+	certPool := x509.NewCertPool()
+	if ok := certPool.AppendCertsFromPEM(pem); !ok {
+		log.Fatal("Failed to add root CA to cert pool")
+	}
+
+	config := &tls.Config{
+		ServerName: servername,
+		RootCAs: certPool,
+		ClientSessionCache: tls.NewLRUClientSessionCache(32),
+	}
 
 	ln, err := net.Listen("tcp", socksAddr)
 	if err != nil {
@@ -81,7 +100,7 @@ func agent(c1 net.Conn, config *tls.Config) {
 	defer c2.Close()
 
 	if _, err = c2.Write(raw); err != nil {
-		log.Printf("%s ! Could not write to SockSSL server %s\n", peer, serverAddr)
+		log.Printf("%s ! Could not write to SockSSL server %s: %s\n", peer, serverAddr, err)
 		return
 	}
 	log.Printf("%s = %s\n", peer, target)
