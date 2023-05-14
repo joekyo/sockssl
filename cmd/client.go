@@ -17,7 +17,9 @@ var (
 	socksAddr  string
 	serverAddr string
 
-	rootCaPem string
+	rootCa string
+	clientKey string
+	clientCert string
 )
 
 const (
@@ -26,13 +28,17 @@ const (
 
 	defaultServerPort = "2080"
 
-	defaultRootCaPem = "root-ca.pem"
+	defaultRootCa = "root-ca.pem"
+	defaultClientKey = "client-key.pem"
+	defaultClientCert = "client-cert.pem"
 )
 
 func init() {
 	socksInterface := flag.String("i", defaultSocksInterface, "listen interface")
 	socksPort := flag.String("p", defaultSocksPort, "listen port")
-	flag.StringVar(&rootCaPem, "ca", defaultRootCaPem, "root CA")
+	flag.StringVar(&rootCa, "ca", defaultRootCa, "root CA")
+	flag.StringVar(&clientKey, "key", defaultClientKey, "client private key")
+	flag.StringVar(&clientCert, "cert", defaultClientCert, "client certificate")
 	flag.Parse()
 	socksAddr = net.JoinHostPort(*socksInterface, *socksPort)
 
@@ -49,18 +55,24 @@ func init() {
 func main() {
 	servername, _, _ := net.SplitHostPort(serverAddr)
 
-	pem, err := os.ReadFile(rootCaPem)
+	ca, err := os.ReadFile(rootCa)
 	if err != nil {
 		log.Fatal("Failed to read root CA")
 	}
 	certPool := x509.NewCertPool()
-	if ok := certPool.AppendCertsFromPEM(pem); !ok {
+	if ok := certPool.AppendCertsFromPEM(ca); !ok {
 		log.Fatal("Failed to add root CA to cert pool")
+	}
+
+	cert, err := tls.LoadX509KeyPair(clientCert, clientKey)
+	if err != nil {
+		log.Fatal("Failed to load client certificate")
 	}
 
 	config := &tls.Config{
 		ServerName: servername,
 		RootCAs: certPool,
+		Certificates: []tls.Certificate{cert},
 		ClientSessionCache: tls.NewLRUClientSessionCache(32),
 	}
 

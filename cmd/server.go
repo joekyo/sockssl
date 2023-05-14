@@ -2,17 +2,20 @@ package main
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"flag"
 	"log"
 	"net"
+	"os"
 	"time"
 
 	"sockssl"
 )
 
 const (
-	defaultKeyFile  = "key.pem"
-	defaultCertFile = "fullchain.pem"
+	defaultServerKey = "site-key.pem"
+	defaultServerCert = "site-cert.pem"
+	defaultCaCert = "root-ca.pem"
 
 	defaultInterface = "0.0.0.0"
 	defaultPort      = "2080"
@@ -22,16 +25,27 @@ func main() {
 	listenInterface := flag.String("i", defaultInterface, "listen interface")
 	listenPort := flag.String("p", defaultPort, "listen port")
 
-	keyFile := flag.String("k", defaultKeyFile, "private key file")
-	certFile := flag.String("c", defaultCertFile, "certificate file")
+	caCert := flag.String("ca", defaultCaCert, "server private key")
+	serverKey := flag.String("key", defaultServerKey, "server private key")
+	serverCert := flag.String("cert", defaultServerCert, "server certificate")
 	flag.Parse()
 
-	config := &tls.Config{}
-	cert, err := tls.LoadX509KeyPair(*certFile, *keyFile)
+	pem, err := os.ReadFile(*caCert)
+	if err != nil {
+		log.Fatal("Failed to load CA certificate")
+	}
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(pem)
+
+	cert, err := tls.LoadX509KeyPair(*serverCert, *serverKey)
 	if err != nil {
 		log.Fatalf("Load key and certificate failed, %v\n", err)
 	}
-	config.Certificates = []tls.Certificate{cert}
+	config := &tls.Config{
+		ClientCAs: caCertPool,
+		ClientAuth: tls.RequireAndVerifyClientCert,
+		Certificates:[]tls.Certificate{cert},
+	}
 
 	addr := net.JoinHostPort(*listenInterface, *listenPort)
 	ln, err := net.Listen("tcp", addr)
