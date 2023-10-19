@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -15,8 +16,9 @@ import (
 
 var (
 	socksAddr  string
-	serverAddr string
+	serverIPAddr string
 
+	sslPath string
 	rootCa string
 	clientKey string
 	clientCert string
@@ -28,33 +30,35 @@ const (
 
 	defaultServerPort = "2080"
 
+	defaultSSLPath = "."
+
 	defaultRootCa = "root-ca.pem"
 	defaultClientKey = "client-key.pem"
 	defaultClientCert = "client-cert.pem"
+
+	serverName = "sockssl.io"
 )
 
 func init() {
 	socksInterface := flag.String("i", defaultSocksInterface, "listen interface")
 	socksPort := flag.String("p", defaultSocksPort, "listen port")
-	flag.StringVar(&rootCa, "ca", defaultRootCa, "root CA")
-	flag.StringVar(&clientKey, "key", defaultClientKey, "client private key")
-	flag.StringVar(&clientCert, "cert", defaultClientCert, "client certificate")
+	flag.StringVar(&sslPath, "d", defaultSSLPath, "SSL files path")
 	flag.Parse()
 	socksAddr = net.JoinHostPort(*socksInterface, *socksPort)
 
 	log.SetFlags(log.Ltime)
 	if flag.NArg() != 1 {
-		log.Fatalln("Missing command line argument `host[:port]`")
+		log.Fatalln("Missing command line argument `IPAddress[:port]`")
 	}
-	serverAddr = flag.Args()[0]
-	if !strings.Contains(serverAddr, ":") {
-		serverAddr = net.JoinHostPort(serverAddr, defaultServerPort)
+	serverIPAddr = flag.Args()[0]
+	if !strings.Contains(serverIPAddr, ":") {
+		serverIPAddr = net.JoinHostPort(serverIPAddr, defaultServerPort)
 	}
 }
 
-func main() {
-	servername, _, _ := net.SplitHostPort(serverAddr)
 
+func main() {
+	rootCa := filepath.Join(sslPath, defaultRootCa)
 	ca, err := os.ReadFile(rootCa)
 	if err != nil {
 		log.Fatal("Failed to read root CA")
@@ -64,13 +68,15 @@ func main() {
 		log.Fatal("Failed to add root CA to cert pool")
 	}
 
+	clientCert := filepath.Join(sslPath, defaultClientCert)
+	clientKey := filepath.Join(sslPath, defaultClientKey)
 	cert, err := tls.LoadX509KeyPair(clientCert, clientKey)
 	if err != nil {
 		log.Fatal("Failed to load client certificate")
 	}
 
 	config := &tls.Config{
-		ServerName: servername,
+		ServerName: serverName,
 		RootCAs: certPool,
 		Certificates: []tls.Certificate{cert},
 		ClientSessionCache: tls.NewLRUClientSessionCache(32),
@@ -102,9 +108,9 @@ func agent(c1 net.Conn, config *tls.Config) {
 	}
 	log.Printf("%s > %s\n", peer, target)
 
-	c2, err := net.Dial("tcp", serverAddr)
+	c2, err := net.Dial("tcp", serverIPAddr)
 	if err != nil {
-		log.Printf("%s ! Could not connect to SockSSL server %s\n", peer, serverAddr)
+		log.Printf("%s ! Could not connect to SockSSL server %s\n", peer, serverIPAddr)
 		return
 	}
 
@@ -112,7 +118,7 @@ func agent(c1 net.Conn, config *tls.Config) {
 	defer c2.Close()
 
 	if _, err = c2.Write(raw); err != nil {
-		log.Printf("%s ! Could not write to SockSSL server %s: %s\n", peer, serverAddr, err)
+		log.Printf("%s ! Could not write to SockSSL server %s: %s\n", peer, serverIPAddr, err)
 		return
 	}
 	log.Printf("%s = %s\n", peer, target)
